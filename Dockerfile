@@ -36,15 +36,23 @@ RUN pip install --no-cache-dir runpod boto3 requests
 
 # ── Models baked into image (fp8 7B DiT + fp16 VAE, ~7GB) ──────────────────
 # Both repos are public/ungated today; HF_TOKEN kept for resilience.
-RUN BACKOFFS="10 20 30 60 90" && for i in 1 2 3 4 5; do \
-      HF_TOKEN=$HF_TOKEN comfy model download --url 'https://huggingface.co/numz/SeedVR2_comfyUI/resolve/main/ema_vae_fp16.safetensors' --relative-path models/SEEDVR2 --filename 'ema_vae_fp16.safetensors' && break; \
-      if [ $i -eq 5 ]; then echo "model-download failed after 5 attempts" >&2; exit 1; fi; \
-      SLEEP=$(echo $BACKOFFS | cut -d ' ' -f $i) && echo "model-download attempt $i failed; retrying in $SLEEP seconds" >&2; sleep $SLEEP; \
+# SeedVR2 node reads models from folder_paths.models_dir/SEEDVR2.
+# comfy-cli model download writes to its own workspace (~comfy/ComfyUI) so it would land in the wrong place.
+# Download directly to /comfyui/models/SEEDVR2/ instead.
+RUN mkdir -p /comfyui/models/SEEDVR2 && \
+    BACKOFFS="10 20 30 60 90" && for i in 1 2 3 4 5; do \
+      curl -fL --retry 3 -H "Authorization: Bearer $HF_TOKEN" \
+           -o /comfyui/models/SEEDVR2/ema_vae_fp16.safetensors \
+           "https://huggingface.co/numz/SeedVR2_comfyUI/resolve/main/ema_vae_fp16.safetensors" && break; \
+      if [ $i -eq 5 ]; then echo "VAE download failed after 5 attempts" >&2; exit 1; fi; \
+      SLEEP=$(echo $BACKOFFS | cut -d " " -f $i) && echo "VAE attempt $i failed; retrying in $SLEEP seconds" >&2; sleep $SLEEP; \
     done
 RUN BACKOFFS="10 20 30 60 90" && for i in 1 2 3 4 5; do \
-      HF_TOKEN=$HF_TOKEN comfy model download --url 'https://huggingface.co/AInVFX/SeedVR2_comfyUI/resolve/main/seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors' --relative-path models/SEEDVR2 --filename 'seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors' && break; \
-      if [ $i -eq 5 ]; then echo "model-download failed after 5 attempts" >&2; exit 1; fi; \
-      SLEEP=$(echo $BACKOFFS | cut -d ' ' -f $i) && echo "model-download attempt $i failed; retrying in $SLEEP seconds" >&2; sleep $SLEEP; \
+      curl -fL --retry 3 -H "Authorization: Bearer $HF_TOKEN" \
+           -o /comfyui/models/SEEDVR2/seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors \
+           "https://huggingface.co/AInVFX/SeedVR2_comfyUI/resolve/main/seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors" && break; \
+      if [ $i -eq 5 ]; then echo "DiT download failed after 5 attempts" >&2; exit 1; fi; \
+      SLEEP=$(echo $BACKOFFS | cut -d " " -f $i) && echo "DiT attempt $i failed; retrying in $SLEEP seconds" >&2; sleep $SLEEP; \
     done
 
 COPY handler.py /handler.py
