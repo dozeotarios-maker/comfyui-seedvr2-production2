@@ -52,10 +52,5 @@ hf_hub_download(
     local_dir="/comfyui/models/SEEDVR2",
 )
 PYEOF
-from huggingface_hub import hf_hub_download\
-hf_hub_download(repo_id=\"numz/SeedVR2_comfyUI\", filename=\"ema_vae_fp16.safetensors\", local_dir=\"/comfyui/models/SEEDVR2\")\
-hf_hub_download(repo_id=\"AInVFX/SeedVR2_comfyUI\", filename=\"seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors\", local_dir=\"/comfyui/models/SEEDVR2\")\
-\"
-
 
 COPY handler.py /handler.py
