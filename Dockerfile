@@ -36,23 +36,15 @@ RUN pip install --no-cache-dir runpod boto3 requests
 
 # ── Models baked into image (fp8 7B DiT + fp16 VAE, ~7GB) ──────────────────
 # Both repos are public/ungated today; HF_TOKEN kept for resilience.
-# SeedVR2 node reads models from folder_paths.models_dir/SEEDVR2.
-# comfy-cli model download writes to its own workspace (~comfy/ComfyUI) so it would land in the wrong place.
-# Download directly to /comfyui/models/SEEDVR2/ instead.
+# Download SeedVR2 model weights directly to /comfyui/models/SEEDVR2/ (the path the node reads from).
+# Uses huggingface_hub (already installed via comfy-cli) — respects HF_TOKEN, handles retries,
+# and writes to an explicit local_dir so we avoid comfy-cli workspace path resolution issues.
 RUN mkdir -p /comfyui/models/SEEDVR2 && \
-    BACKOFFS="10 20 30 60 90" && for i in 1 2 3 4 5; do \
-      curl -fL --retry 3 -H "Authorization: Bearer $HF_TOKEN" \
-           -o /comfyui/models/SEEDVR2/ema_vae_fp16.safetensors \
-           "https://huggingface.co/numz/SeedVR2_comfyUI/resolve/main/ema_vae_fp16.safetensors" && break; \
-      if [ $i -eq 5 ]; then echo "VAE download failed after 5 attempts" >&2; exit 1; fi; \
-      SLEEP=$(echo $BACKOFFS | cut -d " " -f $i) && echo "VAE attempt $i failed; retrying in $SLEEP seconds" >&2; sleep $SLEEP; \
-    done
-RUN BACKOFFS="10 20 30 60 90" && for i in 1 2 3 4 5; do \
-      curl -fL --retry 3 -H "Authorization: Bearer $HF_TOKEN" \
-           -o /comfyui/models/SEEDVR2/seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors \
-           "https://huggingface.co/AInVFX/SeedVR2_comfyUI/resolve/main/seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors" && break; \
-      if [ $i -eq 5 ]; then echo "DiT download failed after 5 attempts" >&2; exit 1; fi; \
-      SLEEP=$(echo $BACKOFFS | cut -d " " -f $i) && echo "DiT attempt $i failed; retrying in $SLEEP seconds" >&2; sleep $SLEEP; \
-    done
+    python3 -c "\"\
+from huggingface_hub import hf_hub_download\
+hf_hub_download(repo_id=\"numz/SeedVR2_comfyUI\", filename=\"ema_vae_fp16.safetensors\", local_dir=\"/comfyui/models/SEEDVR2\")\
+hf_hub_download(repo_id=\"AInVFX/SeedVR2_comfyUI\", filename=\"seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors\", local_dir=\"/comfyui/models/SEEDVR2\")\
+\"
+
 
 COPY handler.py /handler.py
