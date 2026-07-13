@@ -39,8 +39,19 @@ RUN pip install --no-cache-dir runpod boto3 requests
 # Download SeedVR2 model weights directly to /comfyui/models/SEEDVR2/ (the path the node reads from).
 # Uses huggingface_hub (already installed via comfy-cli) — respects HF_TOKEN, handles retries,
 # and writes to an explicit local_dir so we avoid comfy-cli workspace path resolution issues.
-RUN mkdir -p /comfyui/models/SEEDVR2 && \
-    python3 -c "\"\
+RUN mkdir -p /comfyui/models/SEEDVR2 && python3 - <<'PYEOF'
+from huggingface_hub import hf_hub_download
+hf_hub_download(
+    repo_id="numz/SeedVR2_comfyUI",
+    filename="ema_vae_fp16.safetensors",
+    local_dir="/comfyui/models/SEEDVR2",
+)
+hf_hub_download(
+    repo_id="AInVFX/SeedVR2_comfyUI",
+    filename="seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors",
+    local_dir="/comfyui/models/SEEDVR2",
+)
+PYEOF
 from huggingface_hub import hf_hub_download\
 hf_hub_download(repo_id=\"numz/SeedVR2_comfyUI\", filename=\"ema_vae_fp16.safetensors\", local_dir=\"/comfyui/models/SEEDVR2\")\
 hf_hub_download(repo_id=\"AInVFX/SeedVR2_comfyUI\", filename=\"seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors\", local_dir=\"/comfyui/models/SEEDVR2\")\
