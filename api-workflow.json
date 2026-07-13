@@ -12,7 +12,20 @@
       "vae": [
         "13",
         0
-      ]
+      ],
+      "seed": 42,
+      "batch_size_mode": "fixed",
+      "resolution": 720,
+      "max_resolution": 0,
+      "batch_size": 33,
+      "uniform_batch_size": true,
+      "color_correction": "lab",
+      "temporal_overlap": 3,
+      "prepend_frames": 0,
+      "input_noise_scale": 0,
+      "latent_noise_scale": 0,
+      "device": "cpu",
+      "enable_debug": false
     },
     "class_type": "SeedVR2VideoUpscaler",
     "_meta": {
