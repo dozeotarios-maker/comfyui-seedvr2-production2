@@ -1,1 +1,120 @@
-{"10":{"inputs":{"image":["26",0],"dit":["14",0],"vae":["13",0]},"class_type":"SeedVR2VideoUpscaler","_meta":{"title":"SeedVR2VideoUpscaler"}},"13":{"inputs":{},"class_type":"SeedVR2LoadVAEModel","_meta":{"title":"SeedVR2LoadVAEModel"}},"14":{"inputs":{},"class_type":"SeedVR2LoadDiTModel","_meta":{"title":"SeedVR2LoadDiTModel"}},"23":{"inputs":{"video":["24",0],"filename_prefix":"video/ComfyUI","format":"auto","codec":"auto"},"class_type":"SaveVideo","_meta":{"title":"SaveVideo"}},"24":{"inputs":{"images":["10",0],"audio":["26",2],"fps":["27",0]},"class_type":"CreateVideo","_meta":{"title":"CreateVideo"}},"26":{"inputs":{"video":"","force_rate":0,"custom_width":0,"custom_height":0,"frame_load_cap":0,"skip_first_frames":0,"select_every_nth":1,"format":"AnimateDiff","videopreview":{"hidden":false,"paused":false,"params":{"filename":"","type":"path","format":"video/","force_rate":0,"custom_width":0,"custom_height":0,"frame_load_cap":0,"skip_first_frames":0,"select_every_nth":1}}},"class_type":"VHS_LoadVideoPath","_meta":{"title":"VHS_LoadVideoPath"}},"27":{"inputs":{"video_info":["26",3]},"class_type":"VHS_VideoInfo","_meta":{"title":"VHS_VideoInfo"}}}
+{
+  "10": {
+    "inputs": {
+      "image": [
+        "26",
+        0
+      ],
+      "dit": [
+        "14",
+        0
+      ],
+      "vae": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "SeedVR2VideoUpscaler",
+    "_meta": {
+      "title": "SeedVR2VideoUpscaler"
+    }
+  },
+  "13": {
+    "inputs": {
+      "model": "ema_vae_fp16.safetensors",
+      "device": "cuda:0"
+    },
+    "class_type": "SeedVR2LoadVAEModel",
+    "_meta": {
+      "title": "SeedVR2LoadVAEModel"
+    }
+  },
+  "14": {
+    "inputs": {
+      "model": "seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors",
+      "device": "cuda:0"
+    },
+    "class_type": "SeedVR2LoadDiTModel",
+    "_meta": {
+      "title": "SeedVR2LoadDiTModel"
+    }
+  },
+  "23": {
+    "inputs": {
+      "video": [
+        "24",
+        0
+      ],
+      "filename_prefix": "video/ComfyUI",
+      "format": "auto",
+      "codec": "auto"
+    },
+    "class_type": "SaveVideo",
+    "_meta": {
+      "title": "SaveVideo"
+    }
+  },
+  "24": {
+    "inputs": {
+      "images": [
+        "10",
+        0
+      ],
+      "audio": [
+        "26",
+        2
+      ],
+      "fps": [
+        "27",
+        0
+      ]
+    },
+    "class_type": "CreateVideo",
+    "_meta": {
+      "title": "CreateVideo"
+    }
+  },
+  "26": {
+    "inputs": {
+      "video": "",
+      "force_rate": 0,
+      "custom_width": 0,
+      "custom_height": 0,
+      "frame_load_cap": 0,
+      "skip_first_frames": 0,
+      "select_every_nth": 1,
+      "format": "AnimateDiff",
+      "videopreview": {
+        "hidden": false,
+        "paused": false,
+        "params": {
+          "filename": "",
+          "type": "path",
+          "format": "video/",
+          "force_rate": 0,
+          "custom_width": 0,
+          "custom_height": 0,
+          "frame_load_cap": 0,
+          "skip_first_frames": 0,
+          "select_every_nth": 1
+        }
+      }
+    },
+    "class_type": "VHS_LoadVideoPath",
+    "_meta": {
+      "title": "VHS_LoadVideoPath"
+    }
+  },
+  "27": {
+    "inputs": {
+      "video_info": [
+        "26",
+        3
+      ]
+    },
+    "class_type": "VHS_VideoInfo",
+    "_meta": {
+      "title": "VHS_VideoInfo"
+    }
+  }
+}
