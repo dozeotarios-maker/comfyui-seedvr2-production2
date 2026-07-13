@@ -182,48 +182,53 @@ def _content_type(filename):
 
 
 def _process_outputs(history, job_id):
+    """Route outputs by file extension, not by ComfyUI output key name.
+
+    Some nodes (e.g. SeedVR2 SaveVideo) return video files under the "images"
+    key. Checking extension instead of key name ensures .mp4/.webm always go
+    to R2 upload while .png/.jpg stay as base64.
+    """
     outputs = history.get("outputs", {})
     images_out = []
     videos_out = []
 
     for node_id, node_out in outputs.items():
-        for key_name in ("images",):
+        for key_name in ("images", "gifs", "videos"):
             for item in node_out.get(key_name, []):
                 local = _resolve_local_path(item)
                 if not os.path.exists(local):
                     print(f"[handler] missing output file: {local}")
                     continue
-                with open(local, "rb") as f:
-                    data = base64.b64encode(f.read()).decode()
-                images_out.append({
-                    "node_id": node_id,
-                    "filename": item.get("filename"),
-                    "type": "base64",
-                    "data": data,
-                })
 
-        for key_name in ("gifs", "videos"):
-            for item in node_out.get(key_name, []):
-                local = _resolve_local_path(item)
-                if not os.path.exists(local):
-                    print(f"[handler] missing output file: {local}")
-                    continue
                 fname = item.get("filename") or os.path.basename(local)
-                ctype = _content_type(fname)
-                if R2_ENABLED:
-                    key = f"outputs/{job_id}/{fname}"
-                    try:
-                        url = _upload_to_r2(local, key, ctype)
-                        size = os.path.getsize(local)
-                        videos_out.append({
-                            "node_id": node_id,
-                            "filename": fname,
-                            "url": url,
-                            "size_bytes": size,
-                        })
-                        print(f"[handler] uploaded to R2: {url} ({size} bytes)")
-                    except Exception as e:
-                        print(f"[handler] R2 upload failed for {fname}: {e}")
+                ext = os.path.splitext(fname)[1].lower()
+
+                if ext in VIDEO_EXTS:
+                    ctype = _content_type(fname)
+                    if R2_ENABLED:
+                        key = f"outputs/{job_id}/{fname}"
+                        try:
+                            url = _upload_to_r2(local, key, ctype)
+                            size = os.path.getsize(local)
+                            videos_out.append({
+                                "node_id": node_id,
+                                "filename": fname,
+                                "url": url,
+                                "size_bytes": size,
+                            })
+                            print(f"[handler] uploaded to R2: {url} ({size} bytes)")
+                        except Exception as e:
+                            print(f"[handler] R2 upload failed for {fname}: {e}")
+                            with open(local, "rb") as f:
+                                data = base64.b64encode(f.read()).decode()
+                            videos_out.append({
+                                "node_id": node_id,
+                                "filename": fname,
+                                "type": "base64",
+                                "data": data,
+                                "r2_error": str(e),
+                            })
+                    else:
                         with open(local, "rb") as f:
                             data = base64.b64encode(f.read()).decode()
                         videos_out.append({
@@ -231,12 +236,11 @@ def _process_outputs(history, job_id):
                             "filename": fname,
                             "type": "base64",
                             "data": data,
-                            "r2_error": str(e),
                         })
                 else:
                     with open(local, "rb") as f:
                         data = base64.b64encode(f.read()).decode()
-                    videos_out.append({
+                    images_out.append({
                         "node_id": node_id,
                         "filename": fname,
                         "type": "base64",
